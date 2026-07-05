@@ -3,8 +3,22 @@ from pydantic import BaseModel
 from fastapi import HTTPException
 from preprocesing import preprocess, preprocess_text
 import pickle
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 app = FastAPI(title = "News Classification System")
+
+app.mount("/static", StaticFiles(directory="frontend"), name="static")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 
 with open("model.pkl", "rb") as f:
@@ -22,8 +36,9 @@ class NewsReqst(BaseModel):
     news : str
 
 @app.get("/")
-async def root():
-    return {"message": "Welcome to the News Classification System"}
+def home():
+    return FileResponse("frontend/index.html")
+
 
 @app.post("/classify")
 async def classify_news(news_request: NewsReqst):
